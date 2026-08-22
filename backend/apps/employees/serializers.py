@@ -206,7 +206,7 @@ class EmploymentHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = EmploymentHistory
         fields = [
-            "id", "department", "department_name",
+            "id", "employee", "department", "department_name",
             "designation", "designation_name",
             "joining_date", "end_date", "change_reason",
             "created_at",
@@ -228,7 +228,7 @@ class EmployeeDocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = EmployeeDocument
         fields = [
-            "id", "document_type", "file", "name",
+            "id", "employee", "document_type", "file", "name",
             "uploaded_by", "uploaded_by_name", "created_at",
         ]
         read_only_fields = ["id", "uploaded_by", "created_at"]

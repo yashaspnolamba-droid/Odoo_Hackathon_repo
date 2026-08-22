@@ -22,7 +22,7 @@ from apps.employees.serializers import (
     EmployeeSelfUpdateSerializer, EmployeeInvitationSerializer,
     EmploymentHistorySerializer, EmployeeDocumentSerializer,
 )
-from common.permissions import IsHROrAdmin, IsOrganizationMember
+from common.permissions import IsHROrAdmin, IsOrganizationMember, IsSelfOrHRAdmin
 from common.mixins import OrganizationScopedQuerySetMixin
 from apps.audit.utils import create_audit_log
 
@@ -65,8 +65,10 @@ class EmployeeViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):
         return EmployeeDetailSerializer
 
     def get_permissions(self):
-        if self.action in ("list", "retrieve"):
+        if self.action == "list":
             return [IsAuthenticated(), IsOrganizationMember()]
+        if self.action == "retrieve":
+            return [IsAuthenticated(), IsOrganizationMember(), IsSelfOrHRAdmin()]
         if self.action in ("me", "update_me"):
             return [IsAuthenticated()]
         if self.action in ("create", "update", "partial_update", "destroy", "invite"):
@@ -75,16 +77,6 @@ class EmployeeViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
-        # Employee can only see their own record unless HR/Admin
-        if (
-            hasattr(request.user, "employee")
-            and request.user.employee.role == "EMPLOYEE"
-            and instance.id != request.user.employee.id
-        ):
-            return Response(
-                {"success": False, "message": "You can only view your own profile.", "errors": {}},
-                status=status.HTTP_403_FORBIDDEN,
-            )
         serializer = self.get_serializer(instance)
         return Response({"success": True, "data": serializer.data})
 

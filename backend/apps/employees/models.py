@@ -204,26 +204,30 @@ class Employee(BaseModel):
         """
         Generate employee ID in format: {ORG_CODE}-{YEAR}-{SEQUENCE}.
         Sequence is per-organization, per-year.
+        Uses select_for_update to prevent race conditions.
         """
+        from django.db import transaction
+
         org_code = self.organization.organization_code
         year = timezone.now().year
-
-        # Count existing employees for this org in this year
         prefix = f"{org_code}-{year}-"
-        last_employee = (
-            Employee.objects.filter(employee_id__startswith=prefix)
-            .order_by("-employee_id")
-            .first()
-        )
 
-        if last_employee:
-            try:
-                last_seq = int(last_employee.employee_id.split("-")[-1])
-                next_seq = last_seq + 1
-            except (ValueError, IndexError):
+        with transaction.atomic():
+            last_employee = (
+                Employee.objects.select_for_update()
+                .filter(employee_id__startswith=prefix)
+                .order_by("-employee_id")
+                .first()
+            )
+
+            if last_employee:
+                try:
+                    last_seq = int(last_employee.employee_id.split("-")[-1])
+                    next_seq = last_seq + 1
+                except (ValueError, IndexError):
+                    next_seq = 1
+            else:
                 next_seq = 1
-        else:
-            next_seq = 1
 
         return f"{org_code}-{year}-{next_seq:05d}"
 

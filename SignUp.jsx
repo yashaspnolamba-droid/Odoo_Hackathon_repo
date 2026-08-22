@@ -180,13 +180,7 @@ export default function SignUp() {
             )}
           </div>
 
-          <div className="field">
-            <label htmlFor="role">Role</label>
-            <select id="role" value={form.role} onChange={handleChange("role")}>
-              <option value="Employee">Employee</option>
-              <option value="HR">HR</option>
-            </select>
-          </div>
+          {/* Role is assigned by the system — not selectable by the user */}
 
           <div className="field">
             <label htmlFor="password">Password</label>

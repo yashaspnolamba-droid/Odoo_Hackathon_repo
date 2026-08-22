@@ -1,183 +1,205 @@
 # Dayflow HRMS — Backend
 
-Production-quality Django backend for Dayflow, a Human Resource Management System.
+Human Resource Management System built with Django REST Framework.
 
 ## Tech Stack
 
-| Component | Technology |
-|-----------|-----------|
-| Language | Python 3.12+ |
-| Framework | Django 5.1 + Django REST Framework |
-| Database | PostgreSQL 16 |
-| Cache/Broker | Redis 7 |
-| Task Queue | Celery 5.x |
-| Auth | JWT (SimpleJWT) |
-| Docs | OpenAPI 3.0 (drf-spectacular) |
+- **Python** 3.12+ / **Django** 5.1
+- **Django REST Framework** 3.15+
+- **PostgreSQL** (production) / **SQLite** (development)
+- **SimpleJWT** for authentication
+- **Celery** + **Redis** for async tasks
+- **drf-spectacular** for OpenAPI docs
 
-## Quick Start
-
-### 1. Clone and setup
+## Quick Start (Development)
 
 ```bash
+# 1. Create virtual environment
 cd backend
-cp .env.example .env
-```
-
-### 2. Create virtual environment
-
-```bash
 python -m venv venv
 
 # Windows
 .\venv\Scripts\activate
-
 # macOS/Linux
 source venv/bin/activate
-```
 
-### 3. Install dependencies
-
-```bash
+# 2. Install dependencies
 pip install -r requirements.txt
-```
 
-### 4. Start PostgreSQL and Redis
+# 3. Create .env from example
+cp .env.example .env
+# Edit .env if needed (defaults work for local dev with SQLite)
 
-```bash
-# Option A: Docker (recommended)
-docker-compose up db redis -d
-
-# Option B: Local installations
-# Ensure PostgreSQL is running on localhost:5432
-# Ensure Redis is running on localhost:6379
-```
-
-### 5. Run migrations
-
-```bash
+# 4. Run migrations
 python manage.py migrate
-```
 
-### 6. Create superuser (optional)
-
-```bash
+# 5. Create a superuser (optional — for Django admin)
 python manage.py createsuperuser
-```
 
-### 7. Run development server
-
-```bash
+# 6. Start the development server
 python manage.py runserver
 ```
 
-### 8. Access
+The API will be available at `http://localhost:8000/api/v1/`.
 
-- **API**: http://localhost:8000/api/v1/
-- **Swagger UI**: http://localhost:8000/api/docs/
-- **ReDoc**: http://localhost:8000/api/redoc/
-- **Admin**: http://localhost:8000/admin/
+## API Documentation
 
-## Docker Setup
+Once the server is running:
 
-```bash
-# Start all services (backend + PG + Redis + Celery)
-docker-compose up
+- **Swagger UI**: [http://localhost:8000/api/docs/](http://localhost:8000/api/docs/)
+- **ReDoc**: [http://localhost:8000/api/redoc/](http://localhost:8000/api/redoc/)
+- **Raw Schema**: [http://localhost:8000/api/schema/](http://localhost:8000/api/schema/)
 
-# Start only infrastructure
-docker-compose up db redis -d
+## Getting Started — Typical Flow
+
 ```
+1. POST /api/v1/auth/register-organization/   → Creates org + admin account
+2. POST /api/v1/auth/verify-email/             → Verify email (token from email)
+3. POST /api/v1/auth/login/                    → Get JWT tokens
+4. POST /api/v1/employees/invite/              → HR/Admin invites employees
+5. POST /api/v1/auth/accept-invitation/        → Employee accepts, sets password
+```
+
+## API Endpoints
+
+### Authentication (`/api/v1/auth/`)
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | `/register-organization/` | Public | Register org + admin |
+| POST | `/login/` | Public | Login → JWT tokens |
+| POST | `/logout/` | Bearer | Blacklist refresh token |
+| POST | `/refresh/` | Public | Refresh access token |
+| POST | `/verify-email/` | Public | Verify email with token |
+| POST | `/forgot-password/` | Public | Request password reset |
+| POST | `/reset-password/` | Public | Reset password with token |
+| POST | `/accept-invitation/` | Public | Accept employee invitation |
+| GET | `/me/` | Bearer | Current user profile |
+| PATCH | `/me/` | Bearer | Update own profile |
+
+### Organizations (`/api/v1/organizations/`)
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/` | Bearer | List (user's org only) |
+| GET | `/{id}/` | Bearer | Retrieve |
+| PATCH | `/{id}/` | Admin | Update org details |
+
+### Employees (`/api/v1/employees/`)
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/` | Bearer + OrgMember | List (org-scoped, filterable) |
+| POST | `/` | HR/Admin | Create employee |
+| GET | `/{id}/` | Bearer + Self/HR/Admin | Retrieve |
+| PATCH | `/{id}/` | HR/Admin | Update employee |
+| DELETE | `/{id}/` | HR/Admin | Soft-delete (terminates) |
+| GET | `/me/` | Bearer | Own employee profile |
+| PATCH | `/me/` | Bearer | Self-update (restricted fields) |
+| POST | `/invite/` | HR/Admin | Invite employee via email |
+
+### Departments (`/api/v1/departments/`)
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/` | Bearer + OrgMember | List |
+| POST | `/` | HR/Admin | Create |
+| PATCH | `/{id}/` | HR/Admin | Update |
+| DELETE | `/{id}/` | HR/Admin | Delete |
+
+### Designations (`/api/v1/designations/`)
+Same pattern as Departments.
+
+### Attendance (`/api/v1/attendance/`)
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | `/check-in/` | Bearer | Record check-in |
+| POST | `/check-out/` | Bearer | Record check-out |
+| GET | `/records/` | Bearer | List attendance records |
+| GET | `/corrections/` | Bearer | List corrections |
+| POST | `/corrections/` | Bearer | Request correction |
+| PATCH | `/corrections/{id}/approve/` | HR/Admin | Approve correction |
+| PATCH | `/corrections/{id}/reject/` | HR/Admin | Reject correction |
+
+### Leave (`/api/v1/leave/`)
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/types/` | Bearer | List leave types |
+| POST | `/types/` | HR/Admin | Create leave type |
+| GET | `/balance/` | Bearer | View leave balance |
+| GET | `/requests/` | Bearer | List leave requests |
+| POST | `/requests/` | Bearer | Create leave request |
+| PATCH | `/requests/{id}/approve/` | HR/Admin | Approve |
+| PATCH | `/requests/{id}/reject/` | HR/Admin | Reject |
+| PATCH | `/requests/{id}/cancel/` | Bearer (own) | Cancel |
+
+### Payroll (`/api/v1/payroll/`)
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/structures/` | HR/Admin | List salary structures |
+| POST | `/structures/` | HR/Admin | Create structure |
+| GET | `/salary/` | Bearer | View salary (own or all) |
+| POST | `/salary/` | HR/Admin | Assign salary |
+| PATCH | `/salary/{id}/` | HR/Admin | Update salary |
+| GET | `/payslips/` | Bearer | List payslips |
+
+### Notifications (`/api/v1/notifications/`)
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/` | Bearer | List notifications |
+| PATCH | `/{id}/read/` | Bearer | Mark as read |
+| PATCH | `/read-all/` | Bearer | Mark all as read |
+
+## Roles
+
+| Role | Capabilities |
+|------|-------------|
+| **ADMIN** | Full access within their organization |
+| **HR** | Manage employees, approve leave, manage salary |
+| **EMPLOYEE** | View own data, self-update personal info, apply for leave, check in/out |
 
 ## Running Tests
 
 ```bash
-# Run all tests (uses SQLite, no PG required)
-python -m pytest tests/ -v
+# Activate virtualenv first, then:
+pytest -v
 
-# Run specific test file
-python -m pytest tests/test_auth.py -v
-
-# Run with coverage
-python -m pytest tests/ --cov=apps --cov-report=term
+# With coverage:
+pytest --cov=apps --cov=common -v
 ```
 
 ## Project Structure
 
 ```
 backend/
-├── config/                  # Django project configuration
-│   ├── settings/            # Environment-specific settings
-│   ├── urls.py              # Root URL routing (/api/v1/)
-│   ├── celery.py            # Celery configuration
-│   └── wsgi.py / asgi.py
-│
+├── config/              # Django settings, URLs, WSGI/ASGI, Celery
+├── common/              # Shared: BaseModel, permissions, mixins, validators, pagination
 ├── apps/
-│   ├── accounts/            # Custom User model, auth endpoints
-│   ├── organizations/       # Organization model & API
-│   ├── employees/           # Employee, Department, Designation, Documents, History
-│   ├── audit/               # Immutable audit log
-│   ├── notifications/       # Notification model & API
-│   ├── attendance/          # Attendance models (contracts for integration)
-│   ├── leave/               # Leave models + approval architecture (contracts)
-│   ├── payroll/             # Salary & payslip models (contracts)
-│   └── reports/             # Report endpoint contracts
-│
-├── common/                  # Shared utilities
-│   ├── permissions.py       # IsAdmin, IsHR, IsHROrAdmin, etc.
-│   ├── pagination.py        # Standard pagination (20/page, max 100)
-│   ├── exceptions.py        # Consistent {success, message, errors} format
-│   ├── mixins.py            # OrganizationScopedQuerySetMixin
-│   ├── models.py            # BaseModel (UUID pk + timestamps)
-│   ├── validators.py        # File size/type validators
-│   └── storage.py           # Storage path generators (S3-ready)
-│
-├── tests/                   # Automated test suite
-├── docker-compose.yml       # Docker services
-├── Dockerfile               # Backend container
-├── requirements.txt         # Python dependencies
-└── .env.example             # Environment variable template
+│   ├── accounts/        # Custom User, auth tokens, auth views
+│   ├── organizations/   # Organization model + views
+│   ├── employees/       # Employee, Department, Designation, Documents, Invitations
+│   ├── attendance/      # AttendanceRecord, AttendanceCorrection
+│   ├── leave/           # LeaveType, LeaveBalance, LeaveRequest, ApprovalRequest
+│   ├── payroll/         # SalaryStructure, SalaryComponent, EmployeeSalary, Payslip
+│   ├── notifications/   # Notification model + views
+│   ├── audit/           # Immutable AuditLog
+│   └── reports/         # Report endpoints (placeholder)
+└── tests/               # pytest test suite
 ```
-
-## API Versioning
-
-All endpoints are under `/api/v1/`. See the full API contracts in `docs/api_contracts.md`.
 
 ## Environment Variables
 
-See `.env.example` for all required configuration. Key variables:
+See `.env.example` for all available settings. Key variables:
 
-| Variable | Description |
-|----------|-------------|
-| `SECRET_KEY` | Django secret key |
-| `DATABASE_URL` | PostgreSQL connection |
-| `REDIS_URL` | Redis connection |
-| `FRONTEND_URL` | Frontend URL for email links |
-| `EMAIL_BACKEND` | Email backend class |
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `SECRET_KEY` | Django secret key | dev default |
+| `DEBUG` | Debug mode | `True` |
+| `DB_NAME` | Database name | `dayflow` |
+| `DJANGO_SETTINGS_MODULE` | Settings module | `config.settings.development` |
+| `REDIS_URL` | Redis connection | `redis://localhost:6379/0` |
+| `FRONTEND_URL` | Frontend URL for email links | `http://localhost:5173` |
 
-## Architecture Decisions
+## Docker (Production)
 
-- **UUID primary keys** on all models for security and consistency
-- **Employee ID** auto-generated as `{ORG_CODE}-{YEAR}-{SEQUENCE}` (not tied to names)
-- **Organization isolation** via `OrganizationScopedQuerySetMixin` on all org-scoped views
-- **Soft-delete** for employees (status → TERMINATED, user deactivated)
-- **Immutable audit logs** — append-only, no update/delete
-- **Hashed tokens** — email verification and password reset tokens are SHA-256 hashed before storage
-- **JWT authentication** — 30min access / 7-day refresh, token blacklisting for logout
+```bash
+docker-compose up -d
+```
 
-## For Other Team Members
-
-### Frontend Developer
-- Open Swagger UI at `/api/docs/` for all endpoint documentation
-- Auth: send `Authorization: Bearer <access_token>` header
-- All errors return `{success: false, message: "...", errors: {...}}`
-- Pagination: `?page=1&page_size=20`
-
-### Attendance Module Developer
-- Models are in `apps/attendance/models.py` — ready to use
-- Add views/serializers in the same app
-- Use `OrganizationScopedQuerySetMixin` for org isolation
-- Use `create_audit_log()` from `apps.audit.utils` for sensitive actions
-
-### Leave/Payroll Module Developer
-- Models are in `apps/leave/models.py` and `apps/payroll/models.py`
-- Generic `ApprovalRequest` / `ApprovalStep` models support multi-level approval
-- Use `common.permissions` classes for access control
+This starts PostgreSQL, Redis, Django, and Celery worker/beat.

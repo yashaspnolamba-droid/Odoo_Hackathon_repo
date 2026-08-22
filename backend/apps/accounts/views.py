@@ -399,7 +399,8 @@ class AcceptInvitationView(GenericAPIView):
 class MeView(GenericAPIView):
     """
     GET /api/v1/auth/me/
-    Returns the current authenticated user's profile with employee details.
+    PATCH /api/v1/auth/me/
+    Returns or updates the current authenticated user's profile with employee details.
     """
 
     serializer_class = MeSerializer
@@ -411,6 +412,29 @@ class MeView(GenericAPIView):
         return Response(
             {
                 "success": True,
+                "data": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    @extend_schema(tags=["Auth"])
+    def patch(self, request):
+        serializer = self.get_serializer(request.user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        create_audit_log(
+            request=request,
+            action="UPDATE",
+            entity_type="User",
+            entity_id=str(request.user.id),
+            new_values={"action": "profile_update", "fields": list(request.data.keys())},
+        )
+
+        return Response(
+            {
+                "success": True,
+                "message": "Profile updated successfully.",
                 "data": serializer.data,
             },
             status=status.HTTP_200_OK,
