@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="stylesheet" href="salary.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="payroll.css">
+
+    <title>Payroll & Salary Management</title>
+</head>
+
+<body>
+
+    <main>
+
+        <!-- Page Header -->
+        <section>
+            <h1>Payroll & Salary</h1>
+
+            <p>
+                View and manage payroll information
+            </p>
+        </section>
+
+
+        <!-- Employee Payroll -->
+        <section>
+
+            <h2>Employee Payroll</h2>
+
+            <div>
+
+                <div>
+                    <p>Employee Name</p>
+                    <p>Rohan Sharma</p>
+                </div>
+
+                <div>
+                    <p>Employee ID</p>
+                    <p>EMP001</p>
+                </div>
+
+                <div>
+                    <p>Pay Period</p>
+                    <p>August 2026</p>
+                </div>
+
+                <div>
+                    <p>Basic Salary</p>
+                    <p>₹40,000</p>
+                </div>
+
+                <div>
+                    <p>Allowances</p>
+                    <p>₹8,000</p>
+                </div>
+
+                <div>
+                    <p>Deductions</p>
+                    <p>₹3,000</p>
+                </div>
+
+                <div>
+                    <p>Net Salary</p>
+                    <p>₹45,000</p>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- Admin Payroll Control -->
+        <section>
+
+            <h2>Admin Payroll Control</h2>
+
+
+            <!-- Employee List -->
+            <div>
+
+                <h3>Employee List</h3>
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>Employee ID</th>
+                            <th>Employee Name</th>
+                            <th>Basic Salary</th>
+                            <th>Allowances</th>
+                            <th>Deductions</th>
+                            <th>Net Salary</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        <tr>
+                            <td>EMP001</td>
+                            <td>Rohan Sharma</td>
+                            <td>₹40,000</td>
+                            <td>₹8,000</td>
+                            <td>₹3,000</td>
+                            <td>₹45,000</td>
+
+                            <td>
+                                <button type="button">
+                                    Edit
+                                </button>
+                            </td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+            <!-- Salary Structure -->
+            <div>
+
+                <h3>Salary Structure</h3>
+
+                <form>
+
+                    <div>
+                        <label for="basicSalary">
+                            Basic Salary
+                        </label>
+
+                        <input
+                            type="number"
+                            id="basicSalary"
+                            name="basicSalary"
+                            value="40000"
+                        >
+                    </div>
+
+
+                    <div>
+                        <label for="allowances">
+                            Allowances
+                        </label>
+
+                        <input
+                            type="number"
+                            id="allowances"
+                            name="allowances"
+                            value="8000"
+                        >
+                    </div>
+
+
+                    <div>
+                        <label for="deductions">
+                            Deductions
+                        </label>
+
+                        <input
+                            type="number"
+                            id="deductions"
+                            name="deductions"
+                            value="3000"
+                        >
+                    </div>
+
+
+                    <div>
+                        <label for="netSalary">
+                            Net Salary
+                        </label>
+
+                        <input
+                            type="number"
+                            id="netSalary"
+                            name="netSalary"
+                            value="45000"
+                            readonly
+                        >
+                    </div>
+
+
+                    <button type="submit">
+                        Save Changes
+                    </button>
+
+                </form>
+
+            </div>
+
+        </section>
+
+    </main>
+    <script src="salary.js"></script>
+
+</body>
+
+</html>
