@@ -1,19 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Eye, Edit3, Shield, Mail, Phone, Building } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { apiClient } from '../api/client';
 
 export const EmployeeDirectory = ({ onSelectEmployee }) => {
   const { users } = useAuth();
+  const [employees, setEmployees] = useState(users); // Fallback to mock users
   const [search, setSearch] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('All');
 
-  const departments = ['All', ...new Set(users.map(u => u.department || 'Engineering'))];
+  useEffect(() => {
+    // Attempt to fetch from backend API
+    apiClient.get('employees/')
+      .then(response => {
+        const fetchedEmployees = response.data.results || response.data;
+        if (fetchedEmployees && fetchedEmployees.length > 0) {
+           setEmployees(fetchedEmployees);
+        }
+      })
+      .catch(err => {
+        console.warn('Backend disconnected or no data, falling back to mock context users', err);
+      });
+  }, []);
 
-  const filteredUsers = users.filter(u => {
+  const departments = ['All', ...new Set(employees.map(u => u.department || 'Engineering'))];
+
+  const filteredUsers = employees.filter(u => {
     const matchesSearch =
-      u.name.toLowerCase().includes(search.toLowerCase()) ||
-      u.employeeId.toLowerCase().includes(search.toLowerCase()) ||
-      u.email.toLowerCase().includes(search.toLowerCase());
+      u.name?.toLowerCase().includes(search.toLowerCase()) ||
+      u.employeeId?.toLowerCase().includes(search.toLowerCase()) ||
+      u.email?.toLowerCase().includes(search.toLowerCase());
     const matchesDept = departmentFilter === 'All' || u.department === departmentFilter;
     return matchesSearch && matchesDept;
   });
