@@ -1,0 +1,55 @@
+.payroll-hero-card {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: #ffffff;
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: var(--shadow-md);
+  position: relative;
+}
+
+.payroll-hero-amount {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #10b981;
+  letter-spacing: -0.03em;
+  margin: 0.5rem 0;
+}
+
+.payroll-section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.payroll-breakdown-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.payroll-breakdown-table td {
+  padding: 0.85rem 0;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.875rem;
+}
+
+.payroll-breakdown-table tr:last-child td {
+  border-bottom: none;
+}
+
+.payslip-badge-read-only {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.85rem;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(4px);
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #93c5fd;
+}
