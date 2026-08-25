@@ -1,4 +1,4 @@
-# HR Management Portal
+# HR Management - Portal 
 
 A modern, full-stack HR management system built with React (Vite) and Django REST Framework.
 
